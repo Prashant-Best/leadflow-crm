@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { activitiesApi } from '../api/activities';
 import ActivityList from '../components/ActivityList';
@@ -22,15 +22,20 @@ export default function FollowUpsPage() {
   const [error, setError] = useState('');
   const [completingId, setCompletingId] = useState(null);
 
+  // Only the newest request may update the list (fast tab switching).
+  const latestRequest = useRef(0);
+
   const loadActivities = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     setError('');
     try {
-      setActivities(await activitiesApi.list(FILTERS[filter].params));
+      const items = await activitiesApi.list(FILTERS[filter].params);
+      if (requestId === latestRequest.current) setActivities(items);
     } catch (err) {
-      setError(parseApiError(err).message);
+      if (requestId === latestRequest.current) setError(parseApiError(err).message);
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }, [filter]);
 

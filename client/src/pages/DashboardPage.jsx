@@ -70,7 +70,7 @@ export default function DashboardPage() {
               value={summary.activeLeads}
               hint="Not Won or Lost"
               tone="info"
-              to="/leads"
+              to="/leads?stage=Active"
             />
             <MetricCard label="Won leads" value={summary.wonLeads} tone="success" to="/leads?stage=Won" />
             <MetricCard

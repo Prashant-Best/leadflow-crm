@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
@@ -12,9 +12,17 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Close the mobile menu after navigating.
   useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  // Go straight to /login so the next person who logs in on this browser is
+  // not sent back to the previous user's page.
+  const handleLogout = () => {
+    navigate('/login', { replace: true });
+    logout();
+  };
 
   return (
     <div className="app-shell">
@@ -52,7 +60,7 @@ export default function Layout() {
               <strong>{user.name}</strong>
               <span>{user.email}</span>
             </div>
-            <button type="button" className="btn btn--ghost btn--small btn--block" onClick={() => logout()}>
+            <button type="button" className="btn btn--ghost btn--small btn--block" onClick={handleLogout}>
               Log out
             </button>
           </div>

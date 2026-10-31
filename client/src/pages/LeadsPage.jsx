@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { leadsApi } from '../api/leads';
 import { LEAD_STAGES } from '../constants/enums';
@@ -8,11 +8,15 @@ import { parseApiError } from '../utils/apiError';
 import { formatBudget, formatDate } from '../utils/format';
 import { Alert, EmptyState, PageHeader, Spinner, StageBadge } from '../components/ui';
 
+// "Active" is not a stored stage: it means every stage except Won and Lost.
+const ACTIVE_FILTER = 'Active';
+
 export default function LeadsPage() {
   // Search and stage live in the URL so links like /leads?stage=Won work
   // and the filters survive a page refresh.
   const [searchParams, setSearchParams] = useSearchParams();
-  const stage = LEAD_STAGES.includes(searchParams.get('stage')) ? searchParams.get('stage') : '';
+  const stageParam = searchParams.get('stage');
+  const stage = stageParam === ACTIVE_FILTER || LEAD_STAGES.includes(stageParam) ? stageParam : '';
   const [searchText, setSearchText] = useState(searchParams.get('search') || '');
   const search = useDebounce(searchText.trim(), 300);
 
@@ -41,18 +45,25 @@ export default function LeadsPage() {
     updateParam('search', search);
   }, [search, updateParam]);
 
+  // Only the newest request may update the list, so a slow older response
+  // cannot overwrite the results of a filter chosen later.
+  const latestRequest = useRef(0);
+
   const loadLeads = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     setError('');
     try {
       const params = {};
       if (search) params.search = search;
-      if (stage) params.stage = stage;
-      setLeads(await leadsApi.list(params));
+      if (stage === ACTIVE_FILTER) params.active = 'true';
+      else if (stage) params.stage = stage;
+      const items = await leadsApi.list(params);
+      if (requestId === latestRequest.current) setLeads(items);
     } catch (err) {
-      setError(parseApiError(err).message);
+      if (requestId === latestRequest.current) setError(parseApiError(err).message);
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }, [search, stage]);
 
@@ -117,6 +128,7 @@ export default function LeadsPage() {
           <label htmlFor="lead-stage-filter">Stage</label>
           <select id="lead-stage-filter" value={stage} onChange={(event) => updateParam('stage', event.target.value)}>
             <option value="">All stages</option>
+            <option value={ACTIVE_FILTER}>Active (not Won or Lost)</option>
             {LEAD_STAGES.map((option) => (
               <option key={option}>{option}</option>
             ))}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { parseApiError } from '../utils/apiError';
 import { Alert, Field } from '../components/ui';
@@ -19,7 +19,6 @@ function validate(values) {
 
 export default function RegisterPage() {
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [values, setValues] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -40,8 +39,8 @@ export default function RegisterPage() {
 
     setSubmitting(true);
     try {
+      // On success PublicOnlyRoute redirects to the dashboard.
       await register({ name: values.name.trim(), email: values.email.trim(), password: values.password });
-      navigate('/dashboard', { replace: true });
     } catch (err) {
       const { message, fieldErrors } = parseApiError(err);
       setErrors(fieldErrors);

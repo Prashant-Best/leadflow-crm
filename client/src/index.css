@@ -1018,6 +1018,13 @@ textarea {
   color: var(--color-muted);
 }
 
+.session-error {
+  max-width: 520px;
+  margin: 6rem auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
 .not-found {
   max-width: 520px;
   margin: 4rem auto;

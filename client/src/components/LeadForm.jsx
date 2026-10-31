@@ -3,8 +3,9 @@ import { LEAD_SOURCES, LEAD_STAGES, SERVICE_INTERESTS } from '../constants/enums
 import { parseApiError } from '../utils/apiError';
 import { Alert, Field } from './ui';
 
+// Same patterns as server/src/constants/patterns.js
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_PATTERN = /^\+?[0-9\s\-()]{7,20}$/;
+const PHONE_PATTERN = /^\+?(?:[\s\-()]*\d){7,15}[\s\-()]*$/;
 
 const EMPTY_LEAD = {
   name: '',
@@ -45,9 +46,10 @@ function validate(values) {
 
   if (!email && !phone) errors.email = 'Provide at least an email or a phone number';
   if (email && !EMAIL_PATTERN.test(email)) errors.email = 'Enter a valid email address';
-  if (phone && !PHONE_PATTERN.test(phone)) errors.phone = 'Enter a valid phone number (7-20 digits, may start with +)';
+  if (phone && !PHONE_PATTERN.test(phone)) errors.phone = 'Enter a valid phone number (7-15 digits, may start with +)';
 
-  if (values.budget !== '' && (Number.isNaN(Number(values.budget)) || Number(values.budget) < 0)) {
+  const budget = String(values.budget).trim();
+  if (budget !== '' && (!/^\d+(\.\d+)?$/.test(budget) || Number(budget) < 0)) {
     errors.budget = 'Budget must be a number of 0 or more';
   }
   return errors;
@@ -63,7 +65,7 @@ function toPayload(values) {
     phone: optional(values.phone),
     serviceInterest: values.serviceInterest,
     source: values.source,
-    budget: values.budget === '' ? null : Number(values.budget),
+    budget: String(values.budget).trim() === '' ? null : Number(values.budget),
     stage: values.stage,
     notes: optional(values.notes),
   };
@@ -140,7 +142,8 @@ export default function LeadForm({ initialLead, submitLabel, onSubmit, onCancel 
           </select>
         </Field>
         <Field id="lead-budget" label="Budget (₹)" error={errors.budget}>
-          <input {...inputProps('budget')} type="number" min="0" step="any" inputMode="decimal" />
+          {/* A text input (not type="number") so invalid text is reported instead of silently dropped. */}
+          <input {...inputProps('budget')} type="text" inputMode="decimal" placeholder="e.g. 50000" autoComplete="off" />
         </Field>
         <Field id="lead-stage" label="Stage" error={errors.stage}>
           <select {...inputProps('stage')}>

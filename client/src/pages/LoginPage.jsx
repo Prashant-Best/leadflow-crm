@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { parseApiError } from '../utils/apiError';
 import { Alert, Field } from '../components/ui';
@@ -9,8 +9,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginPage() {
   const { login, sessionMessage } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -33,8 +31,8 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
+      // On success PublicOnlyRoute redirects to the page the user wanted.
       await login({ email: values.email.trim(), password: values.password });
-      navigate(location.state?.from || '/dashboard', { replace: true });
     } catch (err) {
       const { message, fieldErrors } = parseApiError(err);
       setErrors(fieldErrors);
