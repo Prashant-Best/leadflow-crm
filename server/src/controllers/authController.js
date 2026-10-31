@@ -20,12 +20,16 @@ async function register(req, res) {
   }
 
   const passwordHash = await bcrypt.hash(password, env.bcryptRounds);
-  const user = await User.create({ name, email, passwordHash });
+  // Sign the token before saving, so a signing failure never leaves behind an
+  // account the user cannot log in to. Mongoose assigns the id on `new`.
+  const user = new User({ name, email, passwordHash });
+  const token = signToken(user);
+  await user.save();
 
   sendSuccess(res, {
     statusCode: 201,
     message: 'Account created',
-    data: { user, token: signToken(user) },
+    data: { user, token },
   });
 }
 

@@ -226,6 +226,34 @@ describe('Leads', () => {
     expect((await Lead.findById(lead.id)).stage).toBe('New');
   });
 
+  test('LEAD-17 active=true returns only leads that are not Won or Lost', async () => {
+    await createLead(token, { name: 'Open', stage: 'Contacted' });
+    await createLead(token, { name: 'Closed won', stage: 'Won' });
+    await createLead(token, { name: 'Closed lost', stage: 'Lost' });
+
+    const res = await api.get('/leads').query({ active: 'true' });
+    const invalid = await api.get('/leads').query({ active: 'yes' });
+
+    expect(res.body.data.items.map((l) => l.name)).toEqual(['Open']);
+    expect(invalid.status).toBe(400);
+  });
+
+  test('LEAD-18 rejects a phone number without enough digits', async () => {
+    for (const phone of ['-------', '(  ) - -', '12345']) {
+      const res = await api.post('/leads').send({ name: 'Bad Phone', phone });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(expect.arrayContaining([expect.objectContaining({ field: 'phone' })]));
+    }
+  });
+
+  test('LEAD-19 a request without a JSON body gets clean validation errors', async () => {
+    const res = await api.post('/leads').set('Content-Type', 'text/plain').send('hello');
+
+    expect(res.status).toBe(400);
+    expect(JSON.stringify(res.body)).not.toMatch(/Cannot read properties/);
+    expect(res.body.errors).toEqual(expect.arrayContaining([expect.objectContaining({ field: 'name' })]));
+  });
+
   test('LEAD-16 list returns newest first in the standard envelope', async () => {
     await createLead(token, { name: 'First' });
     await createLead(token, { name: 'Second' });

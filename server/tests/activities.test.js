@@ -52,6 +52,8 @@ describe('Follow-ups (activities)', () => {
       { leadId: lead.id, title: 'No date' },
       { leadId: lead.id, title: 'Bad date', dueAt: 'tomorrow' },
       { leadId: lead.id, title: 'No timezone', dueAt: '2026-11-05T10:30' },
+      { leadId: lead.id, title: 'Impossible date', dueAt: '2026-02-30T10:00:00.000Z' },
+      { leadId: lead.id, title: 'Not a string', dueAt: 1767225600000 },
       { leadId: lead.id, title: 'Bad type', dueAt: hoursFromNow(1), type: 'Fax' },
     ];
 

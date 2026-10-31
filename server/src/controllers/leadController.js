@@ -2,15 +2,17 @@ const Lead = require('../models/Lead');
 const Activity = require('../models/Activity');
 const ApiError = require('../utils/ApiError');
 const escapeRegex = require('../utils/escapeRegex');
+const { CLOSED_STAGES } = require('../constants/enums');
 const { sendSuccess } = require('../utils/apiResponse');
 const { validatedData } = require('../middleware/validate');
 
-// GET /leads?search=&stage=
+// GET /leads?search=&stage=&active=
 // Only the logged-in user's leads. Search matches name or company, case-insensitive.
 async function listLeads(req, res) {
-  const { search, stage } = validatedData(req, 'query');
+  const { search, stage, active } = validatedData(req, 'query');
 
   const filter = { createdBy: req.user._id };
+  if (active === 'true') filter.stage = { $nin: CLOSED_STAGES };
   if (stage) filter.stage = stage;
   if (search) {
     const pattern = new RegExp(escapeRegex(search), 'i');

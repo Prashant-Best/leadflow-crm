@@ -1,11 +1,10 @@
 const { body, query, checkExact } = require('express-validator');
 const { LEAD_STAGES, LEAD_SOURCES, SERVICE_INTERESTS } = require('../constants/enums');
+const { PHONE_PATTERN } = require('../constants/patterns');
 const { idParam } = require('./common');
 
 // Optional fields where an empty value means "not provided".
 const NULLABLE_LEAD_FIELDS = ['company', 'email', 'phone', 'budget', 'notes'];
-
-const PHONE_PATTERN = /^\+?[0-9\s\-()]{7,20}$/;
 
 function nameRule(isUpdate) {
   const chain = body('name');
@@ -51,7 +50,7 @@ function leadFieldRules(isUpdate) {
       .bail()
       .trim()
       .matches(PHONE_PATTERN)
-      .withMessage('Enter a valid phone number (7-20 digits, may start with +)'),
+      .withMessage('Enter a valid phone number (7-15 digits, may start with +)'),
     body('serviceInterest')
       .optional()
       .isIn(SERVICE_INTERESTS)
@@ -83,7 +82,7 @@ function leadFieldRules(isUpdate) {
 // On create at least one contact method is required. On update the same rule
 // is enforced by the model, which sees the merged (old + new) document.
 const contactRequired = body('email').custom((value, { req }) => {
-  if (value == null && req.body.phone == null) {
+  if (value == null && req.body?.phone == null) {
     throw new Error('Provide at least an email or a phone number');
   }
   return true;
@@ -102,6 +101,8 @@ const listLeadsRules = [
         .optional()
         .isIn(LEAD_STAGES)
         .withMessage(`Stage must be one of: ${LEAD_STAGES.join(', ')}`),
+      // active=true -> only leads that are not Won or Lost
+      query('active').optional().isIn(['true', 'false']).withMessage('active must be true or false'),
     ],
     { locations: ['query'] }
   ),

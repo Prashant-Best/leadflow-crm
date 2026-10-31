@@ -1,4 +1,6 @@
 const { app, API, request } = require('./helpers');
+const { env } = require('../src/config/env');
+const User = require('../src/models/User');
 
 describe('App basics', () => {
   test('APP-01 GET /health returns ok without exposing configuration', async () => {
@@ -34,6 +36,22 @@ describe('App basics', () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Request body is not valid JSON');
+  });
+
+  test('APP-05 missing server configuration returns 503 and creates nothing', async () => {
+    const original = env.jwtSecret;
+    env.jwtSecret = undefined;
+    try {
+      const res = await request(app)
+        .post(`${API}/auth/register`)
+        .send({ name: 'No Config', email: 'noconfig@example.com', password: 'Password123' });
+
+      expect(res.status).toBe(503);
+      expect(res.body.message).toMatch(/not configured/);
+      expect(await User.countDocuments()).toBe(0);
+    } finally {
+      env.jwtSecret = original;
+    }
   });
 
   test('APP-04 error responses never include a stack trace', async () => {

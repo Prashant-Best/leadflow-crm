@@ -10,8 +10,10 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 // serverless entry point (api/index.js) can import it directly.
 const app = express();
 
-// Behind Vercel's proxy, so req.ip is the real client IP for rate limiting.
-app.set('trust proxy', 1);
+// On Vercel requests arrive through a proxy; trusting it makes req.ip the real
+// client IP for rate limiting. Without a proxy the header could be spoofed, so
+// it is only enabled there.
+if (process.env.VERCEL) app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({ origin: env.clientOrigins }));

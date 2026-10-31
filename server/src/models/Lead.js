@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const { LEAD_STAGES, LEAD_SOURCES, SERVICE_INTERESTS } = require('../constants/enums');
 const buildToJSON = require('./toJSON');
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_PATTERN = /^\+?[0-9\s\-()]{7,20}$/;
+const { PHONE_PATTERN, EMAIL_PATTERN } = require('../constants/patterns');
 
 const leadSchema = new mongoose.Schema(
   {

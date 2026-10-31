@@ -1,6 +1,6 @@
 const { body, query, checkExact } = require('express-validator');
 const { ACTIVITY_TYPES, ACTIVITY_STATUSES } = require('../constants/enums');
-const { idParam, isIsoDateTimeWithZone } = require('./common');
+const { idParam, DATE_TIME_MESSAGE, STRICT_ISO, hasTimezone } = require('./common');
 
 const titleRule = (isUpdate) => {
   const chain = body('title');
@@ -21,7 +21,16 @@ const dueAtRule = (isUpdate) => {
   const chain = body('dueAt');
   if (isUpdate) chain.optional();
   else chain.exists({ values: 'falsy' }).withMessage('Due date and time is required').bail();
-  return chain.custom(isIsoDateTimeWithZone).bail().toDate();
+  return chain
+    .isString()
+    .withMessage(DATE_TIME_MESSAGE)
+    .bail()
+    .isISO8601(STRICT_ISO)
+    .withMessage(DATE_TIME_MESSAGE)
+    .bail()
+    .custom(hasTimezone)
+    .bail()
+    .toDate();
 };
 
 const commonRules = (isUpdate) => [
