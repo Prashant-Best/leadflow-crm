@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# environment files
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+coverage/
+.vercel/
+
+# logs
+*.log
+npm-debug.log*
+
+# local database data
+.mongo-data/
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,23 @@
+{
+  "name": "leadflow-crm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LeadFlow CRM - a small MERN lead management app for agencies",
+  "author": "Prashant Panwar",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "start": "npm start -w server",
+    "test": "npm test -w server",
+    "seed": "npm run seed -w server",
+    "build": "npm run build -w client"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
