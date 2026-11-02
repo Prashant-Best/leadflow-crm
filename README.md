@@ -4,6 +4,8 @@ A small CRM for web development and digital marketing agencies. It keeps every p
 
 Built with **MongoDB, Express.js, React and Node.js (MERN)**.
 
+**Live app:** https://leadflow-crm-pearl.vercel.app
+
 **Author:** Prashant Panwar
 
 ---
